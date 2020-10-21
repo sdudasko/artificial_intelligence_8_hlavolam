@@ -6,7 +6,8 @@ namespace artificial_intelligence_8_hlavolam
     {
         public static void Main(string[] args)
         {
-            new Node();
+            Console.WriteLine("ASD");
+            //new Node();
         }
     }
 }
