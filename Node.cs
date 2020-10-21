@@ -13,19 +13,20 @@ namespace artificial_intelligence_8_hlavolam
     // 1. We are creating nodes and putting them into a queue
     public class Node
     {
-        string[] _operators = {
-            "up", "right", "down", "left",
-        };
-
         Node parent_node = null; // Parent node
         string _operator = null; // right, left, ...
         int depth = -1; // Depth
         int cost = -1; // Current trace cost
+        int used_operator = -1;
 
         public int[,] state = null;
 
-        public Node(int[,] startingState = null, int[,] satisfiableState = null)
+        public Node(int[,] state, int used_operator = -1)
         {
+            this.state = state;
+            this.used_operator = used_operator; // For the backtrace
+            //this.depth = depth;
+            //this.parent_node = parent_node;
             //this.printMatrix(this.current_state);
             //this.printMatrix(this.satisfiable_state);
         }
@@ -33,8 +34,11 @@ namespace artificial_intelligence_8_hlavolam
         /**
          * https://stackoverflow.com/a/12827010/6525417
          */
-        private void printMatrix(int [,] rawNodes)
+        public void printMatrix(int [,] rawNodes = null)
         {
+            if (rawNodes == null)
+                rawNodes = this.state;
+
             int rowLength = rawNodes.GetLength(0);
             int colLength = rawNodes.GetLength(1);
             string arrayString = "";
@@ -47,7 +51,7 @@ namespace artificial_intelligence_8_hlavolam
                 arrayString += System.Environment.NewLine + System.Environment.NewLine;
             }
 
-            Console.WriteLine(arrayString);
+            Console.Write(arrayString);
         }
     }
 

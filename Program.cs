@@ -6,7 +6,7 @@ namespace artificial_intelligence_8_hlavolam
     {
         public static void Main(string[] args)
         {
-            new Algorithm().Start();
+            new Algorithm().Handle();
 
             Console.WriteLine("Failed to find a solution");
 
