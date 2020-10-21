@@ -6,8 +6,11 @@ namespace artificial_intelligence_8_hlavolam
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("ASD");
-            //new Node();
+            new Algorithm().Start();
+
+            Console.WriteLine("Failed to find a solution");
+
+            return;
         }
     }
 }

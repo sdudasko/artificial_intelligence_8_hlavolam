@@ -5,19 +5,19 @@ namespace artificial_intelligence_8_hlavolam
 {
     public class Queue
     {
-        Node[] nodes = new Node[] { };
+        List<Node> nodes = new List<Node>();
 
-        public void append()
+        public void append(Node node)
         {
-            this.nodes[this.nodes.Length] = new Node();
+            this.nodes.Add(node);
         }
 
         public Node getFromHeap()
         {
-            if (this.nodes.Length == 0)
+            if (this.nodes.Count == 0)
                 return null;
 
-            return this.nodes[this.nodes.Length - 1];
+            return this.nodes[this.nodes.Count - 1];
         }
     }
 }

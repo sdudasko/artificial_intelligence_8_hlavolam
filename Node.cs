@@ -17,27 +17,17 @@ namespace artificial_intelligence_8_hlavolam
             "up", "right", "down", "left",
         };
 
-        int [,] current_state = new int [3, 3] { // Current stav
-            { 1, 2, 3 },
-            { 4, 5, 6 },
-            { 7, 8, 0 },
-        };
-
-        int[,] satisfiable_state = new int[3, 3] { // Current stav
-            { 1, 2, 3 },
-            { 4, 5, 6 },
-            { 7, 0, 8 },
-        };
-
         Node parent_node = null; // Parent node
         string _operator = null; // right, left, ...
         int depth = -1; // Depth
         int cost = -1; // Current trace cost
 
+        public int[,] state = null;
+
         public Node(int[,] startingState = null, int[,] satisfiableState = null)
         {
             //this.printMatrix(this.current_state);
-            this.printMatrix(this.satisfiable_state);
+            //this.printMatrix(this.satisfiable_state);
         }
 
         /**
