@@ -8,8 +8,6 @@ namespace artificial_intelligence_8_hlavolam
         {
             new Algorithm().Handle();
 
-            Console.WriteLine("Failed to find a solution");
-
             return;
         }
     }

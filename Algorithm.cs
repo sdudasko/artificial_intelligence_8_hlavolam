@@ -4,8 +4,10 @@ namespace artificial_intelligence_8_hlavolam
     public class Algorithm
     {
         Node[] state_tree = new Node[] { };
-        int width = 3;
-        int height = 3;
+        public static int width = 3;
+        public static int height = 3;
+
+        Queue control_queue = new Queue();
 
         string[] _operators = { // We'll translate later, we don't want to map by strings so we use indexes in the project
             "up", // 0.
@@ -16,27 +18,62 @@ namespace artificial_intelligence_8_hlavolam
 
         int[,] starting_state = new int[3, 3] { // Current state
             { 1, 2, 3 },
-            { 4, 0, 6 },
-            { 7, 5, 8 },
+            { 4, 5, 6 },
+            { 7, 8, 0 },
         };
 
         int[,] satisfiable_state = new int[3, 3] { // Current state
             { 1, 2, 3 },
-            { 4, 5, 6 },
-            { 7, 0, 8 },
+            { 4, 6, 8 },
+            { 7, 5, 0 },
         };
 
         public void Handle()
         {
-            Queue control_queue = new Queue();
+            this.checkIfSolvable();
 
-            Node starting_node = new Node(this.starting_state);
+            Node starting_node = new Node(this.starting_state, -1, 0);
 
-            control_queue.append(starting_node);
-            this.createNewStates(stating_node);
+            this.control_queue.append(starting_node);
+
+            Node next_to_handle = this.control_queue.getFromHeap();
+            Console.WriteLine("\n\n\n-----------------n\n\n");
+            int f = 0;
+            while (next_to_handle != null)
+            {
+                f++;
+                if (this.createNewStates(next_to_handle))
+                {
+                    break;
+                }
+
+                this.control_queue.remove(next_to_handle);
+                next_to_handle = this.control_queue.getFromHeap();
+
+                if (f == 15000)
+                {
+                    next_to_handle.printMatrix();
+                    return;
+                }
+            }
+
+            Node parent = next_to_handle.parent_node;
+            Console.WriteLine(this._operators[next_to_handle.used_operator]);
+            while (parent != null)
+            {
+                if (parent.used_operator != -1)
+                {
+                    Console.WriteLine(this._operators[parent.used_operator]);
+                }
+                parent = parent.parent_node;
+            }
+
+            Console.WriteLine("Solution was found!");
+
+            return;
         }
 
-        public void createNewStates(Node starting_node, Queue control_queue)
+        public bool createNewStates(Node starting_node)
         {
             // Handle starting node
             int[,] up_state = this.AfterPerformingUpState(starting_node.state);
@@ -44,45 +81,56 @@ namespace artificial_intelligence_8_hlavolam
             int[,] down_state = this.AfterPerformingDownState(starting_node.state);
             int[,] left_state = this.AfterPerformingLeftState(starting_node.state);
 
+            int givenDepth = 0;
+
+            Node parent = starting_node.parent_node;
+            while (parent != null)
+            {
+                parent = parent.parent_node;
+                givenDepth++;
+            }
+
             if (up_state != null) // There is an option to perform up, so we are creating new node for the up operation
             {
-                Node node_after_up_operation = new Node(up_state, 0, starting_node);
-                control_queue.append(node_after_up_operation);
-                node_after_up_operation.printMatrix();
+                Node node_after_up_operation = new Node(up_state, 0, givenDepth, starting_node);
+                this.control_queue.append(node_after_up_operation);
             }
             if (right_state != null) // There is an option to perform right, so we are creating new node for the right operation
             {
-                Node node_after_right_operation = new Node(right_state, 1, starting_node);
-                control_queue.append(node_after_right_operation);
-                node_after_right_operation.printMatrix();
+                Node node_after_right_operation = new Node(right_state, 1, givenDepth, starting_node);
+                this.control_queue.append(node_after_right_operation);
             }
             if (down_state != null)
             {
-                Node node_after_down_operation = new Node(down_state, 2, starting_node);
-                control_queue.append(node_after_down_operation);
-                node_after_down_operation.printMatrix();
+                Node node_after_down_operation = new Node(down_state, 2, givenDepth, starting_node);
+                this.control_queue.append(node_after_down_operation);
             }
             if (left_state != null)
             {
-                Node node_after_left_operation = new Node(left_state, 3, starting_node);
-                control_queue.append(node_after_left_operation);
-                node_after_left_operation.printMatrix();
+                Node node_after_left_operation = new Node(left_state, 3, givenDepth, starting_node);
+                this.control_queue.append(node_after_left_operation);
             }
 
-            control_queue.remove(starting_node);
+            if (this.CheckIfFoundTheSolution(starting_node))
+            {
+                return true;
+            }
+            //this.control_queue.remove(starting_node);
+
+            return false;
         }
 
         public int[,] AfterPerformingUpState(int[,] state)
         {
             int[,] requested_state = state.Clone() as int[,];
 
-            for (int i = 0; i < this.height; i++)
+            for (int i = 0; i < Algorithm.height; i++)
             {
-                for (int j = 0; j < this.width; j++)
+                for (int j = 0; j < Algorithm.width; j++)
                 {
                     if (requested_state[i, j] == 0)
                     {
-                        if (i == (this.height - 1))
+                        if (i == (Algorithm.height - 1))
                         {
                             return null; // We cannot perform such an operation. 0 (Blank) is not on the very right of the matrix.
                         }
@@ -102,8 +150,8 @@ namespace artificial_intelligence_8_hlavolam
         {
             int[,] requested_state = state.Clone() as int[,];
 
-            for (int i = 0; i < this.height; i++) {
-                for (int j = 0; j < this.width; j++) {
+            for (int i = 0; i < Algorithm.height; i++) {
+                for (int j = 0; j < Algorithm.width; j++) {
                     if(requested_state[i, j] == 0)
                     {
                         if (j == 0) {
@@ -123,8 +171,8 @@ namespace artificial_intelligence_8_hlavolam
         {
             int[,] requested_state = state.Clone() as int[,];
 
-            for (int i = 0; i < this.height; i++) {
-                for (int j = 0; j < this.width; j++) {
+            for (int i = 0; i < Algorithm.height; i++) {
+                for (int j = 0; j < Algorithm.width; j++) {
                     if(requested_state[i, j] == 0)
                     {
                         if (i == 0) {
@@ -144,13 +192,13 @@ namespace artificial_intelligence_8_hlavolam
         {
             int[,] requested_state = state.Clone() as int[,];
 
-            for (int i = 0; i < this.height; i++)
+            for (int i = 0; i < Algorithm.height; i++)
             {
-                for (int j = 0; j < this.width; j++)
+                for (int j = 0; j < Algorithm.width; j++)
                 {
                     if (requested_state[i, j] == 0)
                     {
-                        if (j == (this.width - 1))
+                        if (j == (Algorithm.width - 1))
                         {
                             return null; // We cannot perform such an operation. 0 (Blank) is not on the very right of the matrix.
                         }
@@ -166,5 +214,24 @@ namespace artificial_intelligence_8_hlavolam
             return requested_state;
         }
 
+        public bool CheckIfFoundTheSolution(Node compared_node)
+        {
+            for (int i = 0; i < Algorithm.height; i++)
+            {
+                for (int j = 0; j < Algorithm.width; j++)
+                {
+                    if (compared_node.state[i, j] != this.satisfiable_state[i, j])
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        private bool checkIfSolvable()
+        {
+            return true;
+        }
     }
 }

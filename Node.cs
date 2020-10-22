@@ -13,25 +13,25 @@ namespace artificial_intelligence_8_hlavolam
     // 1. We are creating nodes and putting them into a queue
     public class Node
     {
-        Node parent_node = null; // Parent node
-        string _operator = null; // right, left, ...
-        int depth = -1; // Depth
-        int cost = -1; // Current trace cost
-        int used_operator = -1;
+        public Node parent_node = null; // Parent node
+        public string _operator = null; // right, left, ...
+        public int depth; // Depth
+        public int cost = -1; // Current trace cost
+        public int used_operator = -1;
 
         public Guid uuid;
+        public bool handeled = false;
 
         public int[,] state = null;
 
-        public Node(int[,] state, int used_operator = -1, Node parent_node)
+        public Node(int[,] state, int used_operator = -1, int depth = 0, Node parent_node = null)
         {
             this.uuid = Guid.NewGuid();
             this.state = state;
             this.used_operator = used_operator; // For the backtrace
-            //this.depth = depth;
+            this.depth = depth;
+            this.cost = this.calculateCost();
             this.parent_node = parent_node;
-            //this.printMatrix(this.current_state);
-            //this.printMatrix(this.satisfiable_state);
         }
 
         /**
@@ -55,6 +55,77 @@ namespace artificial_intelligence_8_hlavolam
             }
 
             Console.Write(arrayString);
+        }
+
+        private int calculateCost()
+        {
+            int cost = 0;
+
+            for (int i = 0; i < Algorithm.height; i++)
+            {
+                for (int j = 0; j < Algorithm.width; j++)
+                {
+                    if ((this.state[i, j] != ( i * 3 ) + j + 1) && this.state[i, j] != 0)
+                    {
+                        cost += 1;
+                    }
+                    if ((this.state[i, j] == 1) && (i == 0 && j == 0))
+                    {
+                        cost--;
+                    }
+                    if ((this.state[i, j] == 3) && (i == 0 && j == 2))
+                    {
+                        cost--;
+                    }
+                    if ((this.state[i, j] == 7) && (i == 2 && j == 0))
+                    {
+                        cost--;
+                    }
+                    if ((this.state[i, j] == 5) && (i == 1 && j == 1))
+                    {
+                        cost++;
+                    }
+                    cost += this.HowManyPlacesToBeInRightPlace(i, j, this.state[i, j]);
+                }
+            }
+            //Console.WriteLine("Depth: " + this.depth);
+            return (cost + this.depth);
+        }
+
+        public int HowManyPlacesToBeInRightPlace(int i, int j, int handeledNumber)
+        {
+            if (handeledNumber == 0)
+                return 0;
+
+            int steps = 0;
+            int desired_y = (handeledNumber - 1) / 3;
+            int desired_x = (handeledNumber - 1) % 3;
+
+            while (j != desired_x)
+            {
+                if (j < desired_x)
+                {
+                    j++;
+                } else
+                {
+                    j--;
+                }
+                steps++;
+            }
+            while (i != desired_y)
+            {
+                if (i < desired_y)
+                {
+                    i++;
+                }
+                else
+                {
+                    i--;
+                }
+                steps++;
+            }
+
+            return steps;
         }
     }
 
