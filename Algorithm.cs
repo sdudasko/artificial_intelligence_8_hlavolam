@@ -33,43 +33,43 @@ namespace artificial_intelligence_8_hlavolam
             Node starting_node = new Node(this.starting_state);
 
             control_queue.append(starting_node);
+            this.createNewStates(stating_node);
+        }
 
+        public void createNewStates(Node starting_node, Queue control_queue)
+        {
             // Handle starting node
             int[,] up_state = this.AfterPerformingUpState(starting_node.state);
             int[,] right_state = this.AfterPerformingRightState(starting_node.state);
             int[,] down_state = this.AfterPerformingDownState(starting_node.state);
             int[,] left_state = this.AfterPerformingLeftState(starting_node.state);
 
-            Console.WriteLine("666:");
             if (up_state != null) // There is an option to perform up, so we are creating new node for the up operation
             {
-                Node node_after_up_operation = new Node(up_state, 1);
+                Node node_after_up_operation = new Node(up_state, 0, starting_node);
                 control_queue.append(node_after_up_operation);
-                Console.WriteLine("Up:");
                 node_after_up_operation.printMatrix();
             }
             if (right_state != null) // There is an option to perform right, so we are creating new node for the right operation
             {
-                Node node_after_right_operation = new Node(right_state, 1);
+                Node node_after_right_operation = new Node(right_state, 1, starting_node);
                 control_queue.append(node_after_right_operation);
-                Console.WriteLine("Right:");
                 node_after_right_operation.printMatrix();
             }
             if (down_state != null)
             {
-                Node node_after_down_operation = new Node(down_state, 1);
+                Node node_after_down_operation = new Node(down_state, 2, starting_node);
                 control_queue.append(node_after_down_operation);
-                Console.WriteLine("Down:");
                 node_after_down_operation.printMatrix();
             }
             if (left_state != null)
             {
-                Node node_after_left_operation = new Node(left_state, 1);
+                Node node_after_left_operation = new Node(left_state, 3, starting_node);
                 control_queue.append(node_after_left_operation);
-                Console.WriteLine("Left:");
                 node_after_left_operation.printMatrix();
             }
 
+            control_queue.remove(starting_node);
         }
 
         public int[,] AfterPerformingUpState(int[,] state)

@@ -19,14 +19,17 @@ namespace artificial_intelligence_8_hlavolam
         int cost = -1; // Current trace cost
         int used_operator = -1;
 
+        public Guid uuid;
+
         public int[,] state = null;
 
-        public Node(int[,] state, int used_operator = -1)
+        public Node(int[,] state, int used_operator = -1, Node parent_node)
         {
+            this.uuid = Guid.NewGuid();
             this.state = state;
             this.used_operator = used_operator; // For the backtrace
             //this.depth = depth;
-            //this.parent_node = parent_node;
+            this.parent_node = parent_node;
             //this.printMatrix(this.current_state);
             //this.printMatrix(this.satisfiable_state);
         }

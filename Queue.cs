@@ -11,6 +11,10 @@ namespace artificial_intelligence_8_hlavolam
         {
             this.nodes.Add(node);
         }
+        public void remove(Node node)
+        {
+            this.nodes.RemoveAll(r => r.uuid == node.uuid);
+        }
 
         public Node getFromHeap()
         {
@@ -18,6 +22,14 @@ namespace artificial_intelligence_8_hlavolam
                 return null;
 
             return this.nodes[this.nodes.Count - 1];
+        }
+
+        public void printAllNodesUUIDs()
+        {
+            foreach(Node elem in this.nodes)
+            {
+                Console.WriteLine(elem.uuid);
+            }
         }
     }
 }
