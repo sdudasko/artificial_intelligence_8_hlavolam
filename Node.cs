@@ -21,10 +21,11 @@ namespace artificial_intelligence_8_hlavolam
 
         public Guid uuid;
         public bool handeled = false;
+        public bool from_starting = true;
 
         public int[,] state = null;
 
-        public Node(int[,] state, int used_operator = -1, int depth = 0, Node parent_node = null)
+        public Node(int[,] state, int used_operator = -1, int depth = 0, Node parent_node = null, bool from_starting = true)
         {
             this.uuid = Guid.NewGuid();
             this.state = state;
@@ -32,6 +33,7 @@ namespace artificial_intelligence_8_hlavolam
             this.depth = depth;
             this.cost = this.calculateCost();
             this.parent_node = parent_node;
+            this.from_starting = from_starting;
         }
 
         /**
@@ -65,31 +67,10 @@ namespace artificial_intelligence_8_hlavolam
             {
                 for (int j = 0; j < Algorithm.width; j++)
                 {
-                    if ((this.state[i, j] != ( i * 3 ) + j + 1) && this.state[i, j] != 0)
-                    {
-                        cost += 1;
-                    }
-                    if ((this.state[i, j] == 1) && (i == 0 && j == 0))
-                    {
-                        cost--;
-                    }
-                    if ((this.state[i, j] == 3) && (i == 0 && j == 2))
-                    {
-                        cost--;
-                    }
-                    if ((this.state[i, j] == 7) && (i == 2 && j == 0))
-                    {
-                        cost--;
-                    }
-                    if ((this.state[i, j] == 5) && (i == 1 && j == 1))
-                    {
-                        cost++;
-                    }
                     cost += this.HowManyPlacesToBeInRightPlace(i, j, this.state[i, j]);
                 }
             }
-            //Console.WriteLine("Depth: " + this.depth);
-            return (cost + this.depth);
+            return cost + depth;
         }
 
         public int HowManyPlacesToBeInRightPlace(int i, int j, int handeledNumber)
@@ -97,16 +78,37 @@ namespace artificial_intelligence_8_hlavolam
             if (handeledNumber == 0)
                 return 0;
 
+            int desired_x = 0;
+            int desired_y = 0;
+
+            if (this.from_starting)
+            {
+                desired_x = Algorithm.satisfiable_state_order[handeledNumber]; // We get the final position of current handeled Number
+                desired_x = desired_x % 3;
+
+                desired_y = Algorithm.satisfiable_state_order[handeledNumber]; // We get the final position of current handeled Number
+                desired_y = desired_y / 3;
+
+                // There are directions where we desire to have given number in the end of algorithm
+            } else
+            {
+                desired_x = Algorithm.starting_state_order[handeledNumber]; // We get the final position of current handeled Number
+                desired_x = desired_x % 3;
+
+                desired_y = Algorithm.starting_state_order[handeledNumber]; // We get the final position of current handeled Number
+                desired_y = desired_y / 3;
+            }
+
             int steps = 0;
-            int desired_y = (handeledNumber - 1) / 3;
-            int desired_x = (handeledNumber - 1) % 3;
+
 
             while (j != desired_x)
             {
                 if (j < desired_x)
                 {
                     j++;
-                } else
+                }
+                else
                 {
                     j--;
                 }

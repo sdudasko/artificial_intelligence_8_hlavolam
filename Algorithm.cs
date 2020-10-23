@@ -8,8 +8,6 @@ namespace artificial_intelligence_8_hlavolam
         public static int height = 3;
         public static int nodes_created = 0; // For further statistics
 
-        Queue starting_queue = new Queue();
-        Queue ending_queue = new Queue();
 
         string[] _operators = { // We'll translate later, we don't want to map by strings so we use indexes in the project
             "up", // 0.
@@ -18,46 +16,79 @@ namespace artificial_intelligence_8_hlavolam
             "left", // 3.
         };
 
-        int[,] starting_state = new int[3, 3] { // Current state
+        public static int[,] starting_state = new int[3, 3] { // Current state
             { 2, 7, 3 },
             { 4, 6, 8 },
             { 1, 5, 0 },
-            
+            //{ 1, 2, 3 },
+            //{ 4, 5, 6 },
+            //{ 7, 8, 0 },
+        };
+        public static int[] starting_state_order = {
+            8, 6, 0, 2, 3, 7, 4, 1, 5
+            //8, 0, 1, 2, 3, 4, 5, 6, 7
         };
 
-        int[,] satisfiable_state = new int[3, 3] { // Current state
+        public static int[,] satisfiable_state = new int[3, 3] { // Current state
             { 1, 2, 3 },
             { 4, 5, 6 },
             { 7, 8, 0 },
+            //{ 2, 7, 3 },
+            //{ 4, 6, 8 },
+            //{ 1, 5, 0 },
+        };
+        public static int[] satisfiable_state_order = {
+            //8, 6, 0, 2, 3, 7, 4, 1, 5
+            8, 0, 1, 2, 3, 4, 5, 6, 7
         };
 
         public void Handle()
         {
             //this.checkIfSolvable();
+            Queue starting_queue = new Queue();
+            Queue ending_queue = new Queue();
 
-            Node starting_node = new Node(this.starting_state, -1, 0);
+            Node starting_node = new Node(Algorithm.starting_state, -1, 0, null, true);
+            Node ending_node = new Node(Algorithm.satisfiable_state, -1, 0, null, false);
 
-            this.starting_queue.append(starting_node);
+            starting_queue.append(starting_node);
+            ending_queue.append(ending_node);
 
-            Node next_to_handle = this.starting_queue.getFromHeap();
+            Node next_to_handle = starting_queue.getFromHeap();
+            Node next_to_handle_from_end = ending_queue.getFromHeap();
+
             Console.WriteLine("\n\n\n-----------------n\n\n");
+
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+
             int f = 0;
             while (next_to_handle != null)
             {
                 f++;
-                if (this.createNewStates(next_to_handle))
+                if (this.createNewStates(next_to_handle, starting_queue, true))
+                {
+                    break;
+                }
+                if (this.createNewStates(next_to_handle_from_end, ending_queue, false))
                 {
                     break;
                 }
 
-                this.starting_queue.remove(next_to_handle);
-                next_to_handle = this.starting_queue.getFromHeap();
+                starting_queue.remove(next_to_handle);
+                ending_queue.remove(next_to_handle_from_end);
 
-                if (f == 15000)
+                next_to_handle = starting_queue.getFromHeap();
+                next_to_handle_from_end = ending_queue.getFromHeap();
+
+                if (this.CheckIfFoundSolutionsMet(next_to_handle, next_to_handle_from_end))
                 {
+                    Console.WriteLine("SOLUTIONS MET");
                     next_to_handle.printMatrix();
-                    return;
+                    next_to_handle_from_end.printMatrix();
+                    break;
                 }
+                
+                
             }
 
             Node parent = next_to_handle.parent_node;
@@ -71,13 +102,17 @@ namespace artificial_intelligence_8_hlavolam
                 parent = parent.parent_node;
             }
 
-            Console.WriteLine("Solution was found!");
+            watch.Stop();
+            var elapsedMs = watch.ElapsedMilliseconds;
+
+            Console.WriteLine($"Execution Time: {elapsedMs} ms");
+            Console.WriteLine("Solution was found! srrrr");
             Console.WriteLine("Nodes created: " + Algorithm.nodes_created);
 
             return;
         }
 
-        public bool createNewStates(Node starting_node)
+        public bool createNewStates(Node starting_node, Queue control_queue, bool from_starting)
         {
             // Handle starting node
             int[,] up_state = this.AfterPerformingUpState(starting_node.state);
@@ -86,6 +121,7 @@ namespace artificial_intelligence_8_hlavolam
             int[,] left_state = this.AfterPerformingLeftState(starting_node.state);
 
             int givenDepth = 0;
+            
 
             Node parent = starting_node.parent_node;
             while (parent != null)
@@ -96,29 +132,29 @@ namespace artificial_intelligence_8_hlavolam
 
             if (up_state != null) // There is an option to perform up, so we are creating new node for the up operation
             {
-                Node node_after_up_operation = new Node(up_state, 0, givenDepth, starting_node);
-                this.starting_queue.append(node_after_up_operation);
+                Node node_after_up_operation = new Node(up_state, 0, givenDepth, starting_node, from_starting);
+                control_queue.append(node_after_up_operation);
             }
             if (right_state != null) // There is an option to perform right, so we are creating new node for the right operation
             {
-                Node node_after_right_operation = new Node(right_state, 1, givenDepth, starting_node);
-                this.starting_queue.append(node_after_right_operation);
+                Node node_after_right_operation = new Node(right_state, 1, givenDepth, starting_node, from_starting);
+                control_queue.append(node_after_right_operation);
             }
             if (down_state != null)
             {
-                Node node_after_down_operation = new Node(down_state, 2, givenDepth, starting_node);
-                this.starting_queue.append(node_after_down_operation);
+                Node node_after_down_operation = new Node(down_state, 2, givenDepth, starting_node, from_starting);
+                control_queue.append(node_after_down_operation);
             }
             if (left_state != null)
             {
-                Node node_after_left_operation = new Node(left_state, 3, givenDepth, starting_node);
-                this.starting_queue.append(node_after_left_operation);
+                Node node_after_left_operation = new Node(left_state, 3, givenDepth, starting_node, from_starting);
+                control_queue.append(node_after_left_operation);
             }
 
-            if (this.CheckIfFoundTheSolution(starting_node))
-            {
-                return true;
-            }
+            //if (this.CheckIfFoundTheSolution(starting_node))
+            //{
+            //    return true;
+            //}
             //this.starting_queue.remove(starting_node);
 
             return false;
@@ -218,13 +254,27 @@ namespace artificial_intelligence_8_hlavolam
             return requested_state;
         }
 
-        public bool CheckIfFoundTheSolution(Node compared_node)
+        //public bool CheckIfFoundTheSolution(Node compared_node)
+        //{
+        //    for (int i = 0; i < Algorithm.height; i++)
+        //    {
+        //        for (int j = 0; j < Algorithm.width; j++)
+        //        {
+        //            if (compared_node.state[i, j] != this.satisfiable_state[i, j])
+        //            {
+        //                return false;
+        //            }
+        //        }
+        //    }
+        //    return true;
+        //}
+        public bool CheckIfFoundSolutionsMet(Node starting, Node ending)
         {
             for (int i = 0; i < Algorithm.height; i++)
             {
                 for (int j = 0; j < Algorithm.width; j++)
                 {
-                    if (compared_node.state[i, j] != this.satisfiable_state[i, j])
+                    if (starting.state[i, j] != ending.state[i, j])
                     {
                         return false;
                     }
