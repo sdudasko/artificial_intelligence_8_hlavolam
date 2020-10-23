@@ -3,11 +3,13 @@ namespace artificial_intelligence_8_hlavolam
 {
     public class Algorithm
     {
-        Node[] state_tree = new Node[] { };
+        //Node[] state_tree = new Node[] { };
         public static int width = 3;
         public static int height = 3;
+        public static int nodes_created = 0; // For further statistics
 
-        Queue control_queue = new Queue();
+        Queue starting_queue = new Queue();
+        Queue ending_queue = new Queue();
 
         string[] _operators = { // We'll translate later, we don't want to map by strings so we use indexes in the project
             "up", // 0.
@@ -17,26 +19,27 @@ namespace artificial_intelligence_8_hlavolam
         };
 
         int[,] starting_state = new int[3, 3] { // Current state
+            { 2, 7, 3 },
+            { 4, 6, 8 },
+            { 1, 5, 0 },
+            
+        };
+
+        int[,] satisfiable_state = new int[3, 3] { // Current state
             { 1, 2, 3 },
             { 4, 5, 6 },
             { 7, 8, 0 },
         };
 
-        int[,] satisfiable_state = new int[3, 3] { // Current state
-            { 1, 2, 3 },
-            { 4, 6, 8 },
-            { 7, 5, 0 },
-        };
-
         public void Handle()
         {
-            this.checkIfSolvable();
+            //this.checkIfSolvable();
 
             Node starting_node = new Node(this.starting_state, -1, 0);
 
-            this.control_queue.append(starting_node);
+            this.starting_queue.append(starting_node);
 
-            Node next_to_handle = this.control_queue.getFromHeap();
+            Node next_to_handle = this.starting_queue.getFromHeap();
             Console.WriteLine("\n\n\n-----------------n\n\n");
             int f = 0;
             while (next_to_handle != null)
@@ -47,8 +50,8 @@ namespace artificial_intelligence_8_hlavolam
                     break;
                 }
 
-                this.control_queue.remove(next_to_handle);
-                next_to_handle = this.control_queue.getFromHeap();
+                this.starting_queue.remove(next_to_handle);
+                next_to_handle = this.starting_queue.getFromHeap();
 
                 if (f == 15000)
                 {
@@ -69,6 +72,7 @@ namespace artificial_intelligence_8_hlavolam
             }
 
             Console.WriteLine("Solution was found!");
+            Console.WriteLine("Nodes created: " + Algorithm.nodes_created);
 
             return;
         }
@@ -93,29 +97,29 @@ namespace artificial_intelligence_8_hlavolam
             if (up_state != null) // There is an option to perform up, so we are creating new node for the up operation
             {
                 Node node_after_up_operation = new Node(up_state, 0, givenDepth, starting_node);
-                this.control_queue.append(node_after_up_operation);
+                this.starting_queue.append(node_after_up_operation);
             }
             if (right_state != null) // There is an option to perform right, so we are creating new node for the right operation
             {
                 Node node_after_right_operation = new Node(right_state, 1, givenDepth, starting_node);
-                this.control_queue.append(node_after_right_operation);
+                this.starting_queue.append(node_after_right_operation);
             }
             if (down_state != null)
             {
                 Node node_after_down_operation = new Node(down_state, 2, givenDepth, starting_node);
-                this.control_queue.append(node_after_down_operation);
+                this.starting_queue.append(node_after_down_operation);
             }
             if (left_state != null)
             {
                 Node node_after_left_operation = new Node(left_state, 3, givenDepth, starting_node);
-                this.control_queue.append(node_after_left_operation);
+                this.starting_queue.append(node_after_left_operation);
             }
 
             if (this.CheckIfFoundTheSolution(starting_node))
             {
                 return true;
             }
-            //this.control_queue.remove(starting_node);
+            //this.starting_queue.remove(starting_node);
 
             return false;
         }

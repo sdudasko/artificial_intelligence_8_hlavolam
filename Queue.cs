@@ -10,6 +10,7 @@ namespace artificial_intelligence_8_hlavolam
 
         public void append(Node node)
         {
+            Algorithm.nodes_created++;
             this.nodes.Add(node);
         }
         public void remove(Node node)
