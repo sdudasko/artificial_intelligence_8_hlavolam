@@ -35,6 +35,7 @@
     <Compile Include="Queue.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Algorithm.cs" />
+    <Compile Include="TestCase.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

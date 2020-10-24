@@ -1,50 +1,111 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace artificial_intelligence_8_hlavolam
 {
     public class Algorithm
     {
-        //Node[] state_tree = new Node[] { };
         public static int width = 3;
         public static int height = 3;
         public static int nodes_created = 0; // For further statistics
 
 
         string[] _operators = { // We'll translate later, we don't want to map by strings so we use indexes in the project
-            "up", // 0.
-            "right", // 1.
-            "down", // 2.
-            "left", // 3.
+            "UP", // 0.
+            "RIGHT", // 1.
+            "DOWN", // 2.
+            "LEFT", // 3.
         };
 
         public static int[,] starting_state = new int[3, 3] { // Current state
-            { 2, 7, 3 },
-            { 4, 6, 8 },
-            { 1, 5, 0 },
-            //{ 1, 2, 3 },
-            //{ 4, 5, 6 },
-            //{ 7, 8, 0 },
-        };
-        public static int[] starting_state_order = {
-            8, 6, 0, 2, 3, 7, 4, 1, 5
-            //8, 0, 1, 2, 3, 4, 5, 6, 7
-        };
-
-        public static int[,] satisfiable_state = new int[3, 3] { // Current state
             { 1, 2, 3 },
             { 4, 5, 6 },
             { 7, 8, 0 },
-            //{ 2, 7, 3 },
-            //{ 4, 6, 8 },
-            //{ 1, 5, 0 },
         };
-        public static int[] satisfiable_state_order = {
-            //8, 6, 0, 2, 3, 7, 4, 1, 5
-            8, 0, 1, 2, 3, 4, 5, 6, 7
+        public static int[,] satisfiable_state = new int[3, 3] { // Final state
+            { 2, 7, 3 },
+            { 4, 6, 8 },
+            { 1, 5, 0 },
         };
 
+        /**
+         * 0 is on the 8th place
+         * 1 on the 6th place
+         * 2 on the 0th place
+         * 3 on the 2nd place ...
+         * Example: [8, 0, 1, 2, 3, 4, 5, 6, 7]
+         */
+        public static int[] starting_state_order = new int[9];
+        public static int[] satisfiable_state_order = new int[9];
+
+        /**
+         * We are setting initial positions of items, eg. 0 => 8 means that 0 is on the 8th position
+         * More in initiation of property "starting_state_order" & "satisfiable_state_order" above.
+         * The reason for this is to save time in heuristics function of calculating distance of the item matrix's position
+         * from the final destination in matrix.
+         */
+        public void set_state_orders()
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                Algorithm.starting_state_order[i] = 0;
+                Algorithm.satisfiable_state_order[i] = 0;
+            }
+
+            int f = 0;
+
+            // It is cubic loop but we are breaking in regularly and it does not perform many iteration. Only called in the initiaion of the algorithm.
+            for (int p = 0; p < Algorithm.width * Algorithm.height; p++)
+            {
+                for (int i = 0; i < Algorithm.height; i++)
+                {
+                    for (int j = 0; j < Algorithm.width; j++)
+                    {
+
+                        if (Algorithm.starting_state[i, j] == p)
+                        {
+                            Algorithm.starting_state_order[p] = f;
+                            
+                            break;
+                        }
+                        f++;
+                    }
+                }
+                f = 0;
+            }
+            
+            for (int p = 0; p < 9; p++)
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+
+                        if (Algorithm.satisfiable_state[i, j] == p)
+                        {
+                            Algorithm.satisfiable_state_order[p] = f;
+
+                            break;
+                        }
+                        f++;
+                    }
+                }
+                f = 0;
+            }
+        }
+
+        /**
+         * Performing algorighm. Driving program function.
+         */ 
         public void Handle()
         {
-            //this.checkIfSolvable();
+            var watch = System.Diagnostics.Stopwatch.StartNew(); // Statistics
+
+            this.set_state_orders();
+
+            // We are performing algorithm "Obojstranneho hladania" so we need 2 nodes and 2 queues to start with
+
             Queue starting_queue = new Queue();
             Queue ending_queue = new Queue();
 
@@ -57,14 +118,12 @@ namespace artificial_intelligence_8_hlavolam
             Node next_to_handle = starting_queue.getFromHeap();
             Node next_to_handle_from_end = ending_queue.getFromHeap();
 
-            Console.WriteLine("\n\n\n-----------------n\n\n");
-
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-
             int f = 0;
             while (next_to_handle != null)
             {
                 f++;
+
+                // From each - final and starting node we are creating new states
                 if (this.createNewStates(next_to_handle, starting_queue, true))
                 {
                     break;
@@ -74,55 +133,39 @@ namespace artificial_intelligence_8_hlavolam
                     break;
                 }
 
+                // We are, in fact, not removing nodes, just setting them to unhandled so we can look back for the old states
                 starting_queue.remove(next_to_handle);
                 ending_queue.remove(next_to_handle_from_end);
 
+                // Getting item with the lowest cost from "heap" (Not original heap structure, just custom lookalike - queue)
                 next_to_handle = starting_queue.getFromHeap();
                 next_to_handle_from_end = ending_queue.getFromHeap();
 
+                // After each creating new nodes before nesting any deeper we check if our searches met
                 if (this.CheckIfFoundSolutionsMet(next_to_handle, next_to_handle_from_end))
                 {
-                    Console.WriteLine("SOLUTIONS MET");
-                    next_to_handle.printMatrix();
-                    next_to_handle_from_end.printMatrix();
+                    Console.WriteLine("\n\nSolution:\n");
+                    this.print_solution(next_to_handle, next_to_handle_from_end);
                     break;
                 }
-                
-                
-            }
-
-            Node parent = next_to_handle.parent_node;
-            Console.WriteLine(this._operators[next_to_handle.used_operator]);
-            while (parent != null)
-            {
-                if (parent.used_operator != -1)
-                {
-                    Console.WriteLine(this._operators[parent.used_operator]);
-                }
-                parent = parent.parent_node;
             }
 
             watch.Stop();
             var elapsedMs = watch.ElapsedMilliseconds;
-
             Console.WriteLine($"Execution Time: {elapsedMs} ms");
-            Console.WriteLine("Solution was found! srrrr");
             Console.WriteLine("Nodes created: " + Algorithm.nodes_created);
-
-            return;
         }
 
         public bool createNewStates(Node starting_node, Queue control_queue, bool from_starting)
         {
-            // Handle starting node
+            // We check if we can create new state
             int[,] up_state = this.AfterPerformingUpState(starting_node.state);
             int[,] right_state = this.AfterPerformingRightState(starting_node.state);
             int[,] down_state = this.AfterPerformingDownState(starting_node.state);
             int[,] left_state = this.AfterPerformingLeftState(starting_node.state);
 
+            // We also save depth for more percise heuristics
             int givenDepth = 0;
-            
-
             Node parent = starting_node.parent_node;
             while (parent != null)
             {
@@ -130,12 +173,13 @@ namespace artificial_intelligence_8_hlavolam
                 givenDepth++;
             }
 
+            // If we have created the new state, we create the node with such a state, with the belonging cost
             if (up_state != null) // There is an option to perform up, so we are creating new node for the up operation
             {
                 Node node_after_up_operation = new Node(up_state, 0, givenDepth, starting_node, from_starting);
                 control_queue.append(node_after_up_operation);
             }
-            if (right_state != null) // There is an option to perform right, so we are creating new node for the right operation
+            if (right_state != null)
             {
                 Node node_after_right_operation = new Node(right_state, 1, givenDepth, starting_node, from_starting);
                 control_queue.append(node_after_right_operation);
@@ -150,12 +194,6 @@ namespace artificial_intelligence_8_hlavolam
                 Node node_after_left_operation = new Node(left_state, 3, givenDepth, starting_node, from_starting);
                 control_queue.append(node_after_left_operation);
             }
-
-            //if (this.CheckIfFoundTheSolution(starting_node))
-            //{
-            //    return true;
-            //}
-            //this.starting_queue.remove(starting_node);
 
             return false;
         }
@@ -254,20 +292,6 @@ namespace artificial_intelligence_8_hlavolam
             return requested_state;
         }
 
-        //public bool CheckIfFoundTheSolution(Node compared_node)
-        //{
-        //    for (int i = 0; i < Algorithm.height; i++)
-        //    {
-        //        for (int j = 0; j < Algorithm.width; j++)
-        //        {
-        //            if (compared_node.state[i, j] != this.satisfiable_state[i, j])
-        //            {
-        //                return false;
-        //            }
-        //        }
-        //    }
-        //    return true;
-        //}
         public bool CheckIfFoundSolutionsMet(Node starting, Node ending)
         {
             for (int i = 0; i < Algorithm.height; i++)
@@ -283,9 +307,49 @@ namespace artificial_intelligence_8_hlavolam
             return true;
         }
 
-        private bool checkIfSolvable()
+        public void print_solution(Node next_to_handle, Node next_to_handle_from_end)
         {
-            return true;
+            List<int> starting_operations = new List<int>();
+            List<int> ending_operations = new List<int>();
+
+            Node start_parent = next_to_handle.parent_node;
+            starting_operations.Add(next_to_handle.used_operator);
+
+            while (start_parent != null)
+            {
+                if (start_parent.used_operator != -1)
+                {
+                    //start_parent.printMatrix();
+                    starting_operations.Add(start_parent.used_operator);
+                }
+                start_parent = start_parent.parent_node;
+            }
+
+            Node end_parent = next_to_handle_from_end.parent_node;
+
+            ending_operations.Add(next_to_handle_from_end.used_operator);
+
+            while (end_parent != null)
+            {
+                if (end_parent.used_operator != -1)
+                {
+                    //end_parent.printMatrix();
+                    ending_operations.Add(end_parent.used_operator);
+                }
+                end_parent = end_parent.parent_node;
+            }
+            ending_operations.Reverse();
+            starting_operations.Reverse();
+
+            foreach (int abc in starting_operations)
+            {
+                Console.WriteLine(this._operators[abc]);
+            }
+            Console.WriteLine("Second search:");
+            foreach (int abc in ending_operations)
+            {
+                Console.WriteLine(this._operators[abc]);
+            }
         }
     }
 }

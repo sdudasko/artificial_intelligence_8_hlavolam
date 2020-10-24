@@ -30,6 +30,7 @@ namespace artificial_intelligence_8_hlavolam
             this.uuid = Guid.NewGuid();
             this.state = state;
             this.used_operator = used_operator; // For the backtrace
+
             this.depth = depth;
             this.cost = this.calculateCost();
             this.parent_node = parent_node;
@@ -84,19 +85,19 @@ namespace artificial_intelligence_8_hlavolam
             if (this.from_starting)
             {
                 desired_x = Algorithm.satisfiable_state_order[handeledNumber]; // We get the final position of current handeled Number
-                desired_x = desired_x % 3;
+                desired_x = desired_x % Algorithm.height;
 
                 desired_y = Algorithm.satisfiable_state_order[handeledNumber]; // We get the final position of current handeled Number
-                desired_y = desired_y / 3;
+                desired_y = desired_y / Algorithm.height;
 
                 // There are directions where we desire to have given number in the end of algorithm
             } else
             {
                 desired_x = Algorithm.starting_state_order[handeledNumber]; // We get the final position of current handeled Number
-                desired_x = desired_x % 3;
+                desired_x = desired_x % Algorithm.height;
 
                 desired_y = Algorithm.starting_state_order[handeledNumber]; // We get the final position of current handeled Number
-                desired_y = desired_y / 3;
+                desired_y = desired_y / Algorithm.height;
             }
 
             int steps = 0;

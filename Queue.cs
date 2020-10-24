@@ -71,12 +71,6 @@ namespace artificial_intelligence_8_hlavolam
                 {
                     Console.WriteLine(elem.uuid + " -> " + elem.cost);
                 }
-            } else
-            {
-                //foreach (Node elem in nodes)
-                //{
-                //    Console.WriteLine(elem.uuid + " -> " + elem.cost);
-                //}
             }
 
         }
