@@ -6,7 +6,7 @@ namespace artificial_intelligence_8_hlavolam
 {
     public class Algorithm
     {
-        public static int width = 3;
+        public static int width = 4;
         public static int height = 3;
         public static int nodes_created = 0; // For further statistics
 
@@ -17,16 +17,22 @@ namespace artificial_intelligence_8_hlavolam
             "DOWN", // 2.
             "LEFT", // 3.
         };
-
-        public static int[,] starting_state = new int[3, 3] { // Current state
-            { 1, 2, 3 },
-            { 4, 5, 6 },
-            { 7, 8, 0 },
+        string[] _operators_backwards = { // When we go from end node, we need to make inversed operations to get consecutive solution
+            "DOWN", // 0.
+            "LEFT", // 1.
+            "UP", // 2.
+            "RIGHT", // 3.
         };
-        public static int[,] satisfiable_state = new int[3, 3] { // Final state
-            { 2, 7, 3 },
-            { 4, 6, 8 },
-            { 1, 5, 0 },
+
+        public static int[,] starting_state = new int[3, 4] { // Current state
+            { 1, 2, 3, 9 },
+            { 4, 5, 6, 11 },
+            { 7, 8, 0, 10 },
+        };
+        public static int[,] satisfiable_state = new int[3, 4] { // Final state
+            { 2, 7, 3, 9 },
+            { 4, 6, 8, 10 },
+            { 1, 5, 0, 11 },
         };
 
         /**
@@ -36,8 +42,8 @@ namespace artificial_intelligence_8_hlavolam
          * 3 on the 2nd place ...
          * Example: [8, 0, 1, 2, 3, 4, 5, 6, 7]
          */
-        public static int[] starting_state_order = new int[9];
-        public static int[] satisfiable_state_order = new int[9];
+        public static int[] starting_state_order = new int[12];
+        public static int[] satisfiable_state_order = new int[12];
 
         /**
          * We are setting initial positions of items, eg. 0 => 8 means that 0 is on the 8th position
@@ -47,7 +53,7 @@ namespace artificial_intelligence_8_hlavolam
          */
         public void set_state_orders()
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < Algorithm.height * Algorithm.width; i++)
             {
                 Algorithm.starting_state_order[i] = 0;
                 Algorithm.satisfiable_state_order[i] = 0;
@@ -75,11 +81,11 @@ namespace artificial_intelligence_8_hlavolam
                 f = 0;
             }
             
-            for (int p = 0; p < 9; p++)
+            for (int p = 0; p < Algorithm.height * Algorithm.width; p++)
             {
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < Algorithm.height; i++)
                 {
-                    for (int j = 0; j < 3; j++)
+                    for (int j = 0; j < Algorithm.width; j++)
                     {
 
                         if (Algorithm.satisfiable_state[i, j] == p)
@@ -119,6 +125,10 @@ namespace artificial_intelligence_8_hlavolam
             Node next_to_handle_from_end = ending_queue.getFromHeap();
 
             int f = 0;
+            bool check_old_states = false;
+            int number_of_equal_states = 0;
+            var elapsedMs = watch.ElapsedMilliseconds;
+
             while (next_to_handle != null)
             {
                 f++;
@@ -133,12 +143,38 @@ namespace artificial_intelligence_8_hlavolam
                     break;
                 }
 
+                if (f % 20000 == 0)
+                {
+                    check_old_states = true;
+                }
+                if (f % 22000 == 0) // 100 after first 3000, 200 after next 3000, 400 after next, etc.
+                {
+                    check_old_states = false;
+                    number_of_equal_states = 0;
+                }
+                if (check_old_states)
+                {
+                    if (starting_queue.check_in_old_states_for_state(starting_queue.getFromHeap()) && ending_queue.check_in_old_states_for_state(ending_queue.getFromHeap()))
+                    {
+                        number_of_equal_states++;
+                    }
+                }
+
+                if ((number_of_equal_states != 0) && (number_of_equal_states % 200 == 0))
+                {
+                    watch.Stop();
+                    elapsedMs = watch.ElapsedMilliseconds;
+                    Console.WriteLine($"Could not find a solution.");
+                    break;;
+                }
+
                 // We are, in fact, not removing nodes, just setting them to unhandled so we can look back for the old states
                 starting_queue.remove(next_to_handle);
                 ending_queue.remove(next_to_handle_from_end);
 
                 // Getting item with the lowest cost from "heap" (Not original heap structure, just custom lookalike - queue)
                 next_to_handle = starting_queue.getFromHeap();
+
                 next_to_handle_from_end = ending_queue.getFromHeap();
 
                 // After each creating new nodes before nesting any deeper we check if our searches met
@@ -148,10 +184,11 @@ namespace artificial_intelligence_8_hlavolam
                     this.print_solution(next_to_handle, next_to_handle_from_end);
                     break;
                 }
+
             }
 
             watch.Stop();
-            var elapsedMs = watch.ElapsedMilliseconds;
+            elapsedMs = watch.ElapsedMilliseconds;
             Console.WriteLine($"Execution Time: {elapsedMs} ms");
             Console.WriteLine("Nodes created: " + Algorithm.nodes_created);
         }
@@ -314,12 +351,12 @@ namespace artificial_intelligence_8_hlavolam
 
             Node start_parent = next_to_handle.parent_node;
             starting_operations.Add(next_to_handle.used_operator);
+            int number_of_steps = 2;
 
             while (start_parent != null)
             {
                 if (start_parent.used_operator != -1)
                 {
-                    //start_parent.printMatrix();
                     starting_operations.Add(start_parent.used_operator);
                 }
                 start_parent = start_parent.parent_node;
@@ -333,23 +370,24 @@ namespace artificial_intelligence_8_hlavolam
             {
                 if (end_parent.used_operator != -1)
                 {
-                    //end_parent.printMatrix();
                     ending_operations.Add(end_parent.used_operator);
                 }
                 end_parent = end_parent.parent_node;
             }
-            ending_operations.Reverse();
             starting_operations.Reverse();
 
-            foreach (int abc in starting_operations)
+            foreach (int op in starting_operations)
             {
-                Console.WriteLine(this._operators[abc]);
+                number_of_steps++;
+                Console.WriteLine(this._operators[op]);
             }
-            Console.WriteLine("Second search:");
-            foreach (int abc in ending_operations)
+            //Console.WriteLine("Second search:"); // Uncomment if you want to see devision of searches
+            foreach (int op in ending_operations)
             {
-                Console.WriteLine(this._operators[abc]);
+                number_of_steps++;
+                Console.WriteLine(this._operators_backwards[op]);
             }
+            Console.WriteLine($"Number of steps: {number_of_steps}");
         }
     }
 }

@@ -3,18 +3,14 @@
 namespace artificial_intelligence_8_hlavolam
 {
     // State: 2d arr
-    // Heuristics: Number of nodes PATHS which do not correspond with their position (4+4+3+2+...n(pos)) n = 9
+    // Heuristics: Number of nodes PATHS which do not correspond with their position (4+4+3+2+...n(pos)) n = 9, depth
     // We do represent blank as 0 for better visualization
-
-    // Honorable mentions: we might consider adjusting algorithm to not make redundant,
-    // possibly infinite loops in case of 2 step same result situation: (1, 2, 3) -> (1, 3, 2) -> (1, 2, 3) deadlock
 
     // Algorithm:
     // 1. We are creating nodes and putting them into a queue
     public class Node
     {
         public Node parent_node = null; // Parent node
-        public string _operator = null; // right, left, ...
         public int depth; // Depth
         public int cost = -1; // Current trace cost
         public int used_operator = -1;
@@ -38,6 +34,8 @@ namespace artificial_intelligence_8_hlavolam
         }
 
         /**
+         * Just for testing purposes
+         * Code used from:
          * https://stackoverflow.com/a/12827010/6525417
          */
         public void printMatrix(int [,] rawNodes = null)
@@ -71,9 +69,12 @@ namespace artificial_intelligence_8_hlavolam
                     cost += this.HowManyPlacesToBeInRightPlace(i, j, this.state[i, j]);
                 }
             }
-            return cost + depth;
+            return cost + depth; // We use depth as heuristics as well
         }
 
+        /*
+         * We use destination trace length as heuristics
+         */
         public int HowManyPlacesToBeInRightPlace(int i, int j, int handeledNumber)
         {
             if (handeledNumber == 0)
@@ -85,7 +86,7 @@ namespace artificial_intelligence_8_hlavolam
             if (this.from_starting)
             {
                 desired_x = Algorithm.satisfiable_state_order[handeledNumber]; // We get the final position of current handeled Number
-                desired_x = desired_x % Algorithm.height;
+                desired_x = desired_x % Algorithm.width;
 
                 desired_y = Algorithm.satisfiable_state_order[handeledNumber]; // We get the final position of current handeled Number
                 desired_y = desired_y / Algorithm.height;
@@ -94,7 +95,7 @@ namespace artificial_intelligence_8_hlavolam
             } else
             {
                 desired_x = Algorithm.starting_state_order[handeledNumber]; // We get the final position of current handeled Number
-                desired_x = desired_x % Algorithm.height;
+                desired_x = desired_x % Algorithm.width;
 
                 desired_y = Algorithm.starting_state_order[handeledNumber]; // We get the final position of current handeled Number
                 desired_y = desired_y / Algorithm.height;

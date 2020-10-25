@@ -22,7 +22,6 @@ namespace artificial_intelligence_8_hlavolam
                     node.handeled = true;
                 }
             }
-            //this.nodes.RemoveAll(r => r.uuid == node.uuid);
         }
 
         public Node getFromHeap()
@@ -73,6 +72,33 @@ namespace artificial_intelligence_8_hlavolam
                 }
             }
 
+        }
+
+        public bool check_in_old_states_for_state(Node needle) // 2 nodes' states are equal
+        {
+            bool equal;
+            foreach (Node node in this.nodes)
+            {
+                if (node.handeled)
+                {
+                    equal = true;
+                    for (int i = 0; i < Algorithm.height; i++)
+                    {
+                        for (int j = 0; j < Algorithm.width; j++)
+                        {
+                            if (needle.state[i, j] != node.state[i, j])
+                            {
+                                equal = false;
+                            }
+                        }
+                    }
+                    if (equal)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
